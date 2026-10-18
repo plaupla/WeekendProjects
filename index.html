@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Weekend Projects</title>
+<meta name="description" content="Small, self-contained things, built one weekend at a time.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #fff6e9;
+    --ink: #1b1430;
+    --paper: #ffffff;
+    --muted: #5e5670;
+    --tomato: #ff5a36; --sun: #ffc531; --mint: #2ec4a0;
+    --sky: #4d8bff;    --lilac: #b48cff; --pink: #ff7eb6;
+    --display: "Bricolage Grotesque", system-ui, sans-serif;
+    --mono: "DM Mono", ui-monospace, Menlo, monospace;
+    --shadow: 6px 6px 0 var(--ink);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #1a1526; --ink: #f5ecdc; --paper: #261f36; --muted: #b3a9c4;
+    }
+  }
+  :root[data-theme="dark"] { --bg: #1a1526; --ink: #f5ecdc; --paper: #261f36; --muted: #b3a9c4; }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: var(--display); line-height: 1.5;
+    background-image: radial-gradient(color-mix(in srgb, var(--ink) 9%, transparent) 1.2px, transparent 1.2px);
+    background-size: 22px 22px;
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 48px 16px 96px; }
+
+  /* ---------- Header ---------- */
+  header { margin-bottom: 48px; }
+  .eyebrow { font-family: var(--mono); font-size: .85rem; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  h1 {
+    font-size: clamp(3rem, 12vw, 7.5rem); line-height: .9; margin: 10px 0 20px;
+    font-weight: 800; letter-spacing: -0.04em;
+  }
+  h1 .hl { position: relative; display: inline-block; color: var(--tomato); }
+  h1 .hl::after {
+    content: ""; position: absolute; left: 2%; right: 2%; bottom: -.04em; height: .14em;
+    background: var(--sun); border-radius: 99px; z-index: -1; transform: rotate(-1.5deg);
+  }
+  .intro { font-size: clamp(1.1rem, 2.4vw, 1.35rem); max-width: 40ch; margin: 0; font-weight: 500; }
+  .stickers { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+  .sticker {
+    font-family: var(--mono); font-size: .85rem; font-weight: 500;
+    padding: 6px 12px; border: 2px solid var(--ink); border-radius: 99px;
+    background: var(--paper); box-shadow: 3px 3px 0 var(--ink);
+  }
+  .sticker:nth-child(1) { background: var(--sun); color: #1b1430; transform: rotate(-2deg); }
+  .sticker:nth-child(2) { background: var(--mint); color: #1b1430; transform: rotate(1.5deg); }
+
+  /* ---------- Filters ---------- */
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px; }
+  .chip {
+    font: 500 .9rem var(--mono); color: var(--ink); background: var(--paper);
+    border: 2px solid var(--ink); border-radius: 10px; padding: 6px 12px; cursor: pointer;
+    transition: transform .15s, box-shadow .15s;
+  }
+  .chip:hover { transform: translate(-2px, -2px); box-shadow: 3px 3px 0 var(--ink); }
+  .chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+
+  /* ---------- Grid ---------- */
+  .grid {
+    display: grid; gap: 28px;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    grid-auto-flow: dense;
+  }
+  .tile {
+    position: relative; background: var(--paper); border: 3px solid var(--ink);
+    border-radius: 18px; box-shadow: var(--shadow); overflow: hidden;
+    display: flex; flex-direction: column;
+    transition: transform .2s cubic-bezier(.3,1.6,.6,1), box-shadow .2s;
+  }
+  .tile:nth-child(4n+1) { transform: rotate(-1deg); }
+  .tile:nth-child(4n+2) { transform: rotate(.8deg); }
+  .tile:nth-child(4n+3) { transform: rotate(-.5deg); }
+  .tile:nth-child(4n)   { transform: rotate(1.2deg); }
+  .tile:hover, .tile:focus-within { transform: rotate(0) translate(-3px, -4px); box-shadow: 10px 10px 0 var(--ink); }
+  .tile.featured { grid-column: span 2; }
+  @media (max-width: 560px) { .tile.featured { grid-column: span 1; } }
+
+  .thumb {
+    aspect-ratio: 4 / 3; border-bottom: 3px solid var(--ink); position: relative; overflow: hidden;
+    display: grid; place-items: center;
+  }
+  .tile.featured .thumb { aspect-ratio: 16 / 9; }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .4s; }
+  .tile:hover .thumb img { transform: scale(1.04); }
+  .thumb .art {
+    width: 100%; height: 100%; display: grid; place-items: center;
+    font-weight: 800; font-size: clamp(3rem, 8vw, 5rem); letter-spacing: -0.05em; color: #1b1430;
+    background-image: radial-gradient(rgba(27,20,48,.18) 2px, transparent 2px);
+    background-size: 16px 16px;
+  }
+  .thumb .art span {
+    background: #fff6e9; border: 3px solid #1b1430; border-radius: 16px;
+    padding: 0 .25em; box-shadow: 5px 5px 0 #1b1430; transform: rotate(-4deg);
+  }
+  .badge {
+    position: absolute; top: 12px; right: 12px; z-index: 2;
+    font: 500 .75rem var(--mono); background: var(--sun); color: #1b1430;
+    border: 2px solid #1b1430; border-radius: 99px; padding: 4px 10px; transform: rotate(4deg);
+  }
+
+  .body { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .tile h3 { margin: 0; font-size: 1.3rem; line-height: 1.15; letter-spacing: -0.01em; }
+  .tile.featured h3 { font-size: 1.7rem; }
+  .tile p { margin: 0; color: var(--muted); font-size: .97rem; flex: 1; }
+  .meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 8px; font: .78rem var(--mono); color: var(--muted); }
+  .meta .lang { border: 1.5px solid currentColor; border-radius: 6px; padding: 1px 7px; }
+  .meta .code { margin-left: auto; position: relative; z-index: 2; color: var(--ink); font-weight: 500; text-decoration: none; border-bottom: 2px solid var(--tomato); }
+  .meta .code:hover { color: var(--tomato); }
+
+  /* whole tile clickable, opens the project's own page */
+  .open { position: absolute; inset: 0; z-index: 1; border-radius: 15px; }
+  .open:focus-visible { outline: 4px solid var(--sky); outline-offset: 4px; }
+
+  .note { font-family: var(--mono); color: var(--muted); grid-column: 1 / -1; padding: 24px 0; }
+  footer { margin-top: 80px; font-family: var(--mono); font-size: .85rem; color: var(--muted); }
+  footer a { color: var(--ink); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tile, .tile:hover, .thumb img { transition: none; transform: none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">A small thing, every weekend</div>
+    <h1>Weekend<br><span class="hl">Projects</span></h1>
+    <p class="intro">Tiny, self-contained experiments. Each one lives in its own little corner of the web. Some turned out great. Some were just fun.</p>
+    <div class="stickers" id="stickers"></div>
+  </header>
+
+  <nav class="filters" id="filters" aria-label="Filter projects"></nav>
+  <main class="grid" id="grid"><div class="note">Loading projects…</div></main>
+
+  <footer>Every project has its own repo on <a id="gh-link" href="#">GitHub</a>.</footer>
+</div>
+
+<script>
+  // ===== CONFIG: change these =====
+  const GITHUB_USER   = "YOUR-GITHUB-USERNAME";
+  const LOG_TOPIC     = "weekend-project"; // repos with this topic appear on the site
+  const FEATURE_TOPIC = "portfolio";       // add this too to make a tile big + starred
+  const THUMB_FILE    = "preview.png";     // put this image in the root of each project repo
+  // ================================
+
+  const $ = (id) => document.getElementById(id);
+  const DEMO = GITHUB_USER === "YOUR-GITHUB-USERNAME";
+  $("gh-link").href = DEMO ? "https://github.com" : `https://github.com/${GITHUB_USER}`;
+
+  const COLORS = ["--tomato", "--sun", "--mint", "--sky", "--lilac", "--pink"];
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const ACRONYMS = new Set(["css", "html", "ui", "ux", "api", "cli", "ai", "3d", "2d", "js", "gpt", "llm", "svg"]);
+  const pretty = (n) => n.split(/[-_]+/).filter(Boolean)
+    .map((w) => ACRONYMS.has(w.toLowerCase()) ? w.toUpperCase() : w[0].toUpperCase() + w.slice(1)).join(" ");
+  const hash = (s) => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
+  const initials = (n) => pretty(n).split(" ").filter(Boolean).slice(0, 2).map((w) => w[0]).join("");
+
+  function weekendOf(iso) {
+    const d = new Date(iso);
+    d.setDate(d.getDate() - ((d.getDay() + 1) % 7));
+    return d;
+  }
+  const fmt = (d) => d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+
+  function liveUrl(r) {
+    if (r.homepage) return r.homepage;
+    if (r.has_pages) return `https://${GITHUB_USER}.github.io/${r.name}/`;
+    return r.html_url;
+  }
+
+  function artFallback(r) {
+    const color = COLORS[hash(r.name) % COLORS.length];
+    return `<div class="art" style="background-color: var(${color})"><span>${esc(initials(r.name))}</span></div>`;
+  }
+
+  function tile(r) {
+    const featured = r.topics.includes(FEATURE_TOPIC);
+    const thumb = r.thumb
+      ? `<img src="${esc(r.thumb)}" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{innerHTML:this.dataset.fallback}).firstChild)" data-fallback="${esc(artFallback(r))}">`
+      : artFallback(r);
+    return `
+      <article class="tile${featured ? " featured" : ""}">
+        <a class="open" href="${esc(liveUrl(r))}" aria-label="Open ${esc(pretty(r.name))}"></a>
+        <div class="thumb">${featured ? '<span class="badge">★ portfolio</span>' : ""}${thumb}</div>
+        <div class="body">
+          <h3>${esc(pretty(r.name))}</h3>
+          <p>${esc(r.description || "")}</p>
+          <div class="meta">
+            <span>${esc(fmt(weekendOf(r.created_at)))}</span>
+            ${r.language ? `<span class="lang">${esc(r.language)}</span>` : ""}
+            <a class="code" href="${esc(r.html_url)}">code ↗</a>
+          </div>
+        </div>
+      </article>`;
+  }
+
+  let projects = [];
+  let filter = "all";
+
+  function render() {
+    const list = projects.filter((r) =>
+      filter === "all" ? true :
+      filter === "featured" ? r.topics.includes(FEATURE_TOPIC) :
+      r.language === filter);
+    $("grid").innerHTML = list.length ? list.map(tile).join("")
+      : `<div class="note">No projects yet. Add the "${esc(LOG_TOPIC)}" topic to a repo and it'll show up here.</div>`;
+  }
+
+  function renderFilters() {
+    const langs = [...new Set(projects.map((r) => r.language).filter(Boolean))].sort();
+    const opts = [["all", "All"], ["featured", "★ Portfolio"], ...langs.map((l) => [l, l])];
+    $("filters").innerHTML = opts.map(([v, label]) =>
+      `<button class="chip" data-v="${esc(v)}" aria-pressed="${v === filter}">${esc(label)}</button>`).join("");
+    $("filters").onclick = (e) => {
+      const b = e.target.closest(".chip"); if (!b) return;
+      filter = b.dataset.v; renderFilters(); render();
+    };
+  }
+
+  function renderStickers() {
+    const weekends = new Set(projects.map((r) => weekendOf(r.created_at).toDateString())).size;
+    $("stickers").innerHTML =
+      `<span class="sticker">${projects.length} projects</span><span class="sticker">${weekends} weekends</span>` +
+      (projects[0] ? `<span class="sticker">latest: ${esc(fmt(weekendOf(projects[0].created_at)))}</span>` : "");
+  }
+
+  async function fetchRepos() {
+    const all = [];
+    for (let page = 1; page <= 5; page++) {
+      const res = await fetch(`https://api.github.com/users/${GITHUB_USER}/repos?per_page=100&sort=created&page=${page}`);
+      if (!res.ok) throw new Error(`GitHub said ${res.status}`);
+      const batch = await res.json();
+      all.push(...batch);
+      if (batch.length < 100) break;
+    }
+    return all
+      .filter((r) => !r.fork && (r.topics || []).includes(LOG_TOPIC))
+      .map((r) => ({ ...r, thumb: `https://raw.githubusercontent.com/${GITHUB_USER}/${r.name}/${r.default_branch}/${THUMB_FILE}` }));
+  }
+
+  // Sample data so you can preview the design before setting your username
+  function demoRepos() {
+    const day = (n) => new Date(Date.now() - n * 864e5).toISOString();
+    return [
+      ["pixel-garden", "A tiny generative garden that grows a new flower every time you click.", "JavaScript", 2, true],
+      ["tube-moods", "How busy is the Victoria line right now, as a face.", "TypeScript", 9, false],
+      ["recipe-scaler", "Paste a recipe, change the servings, get sensible grams back.", "Python", 16, false],
+      ["css-only-clock", "An analogue clock with zero JavaScript.", "CSS", 23, true],
+      ["fridge-poetry", "Magnetic poetry, but your fridge is a browser tab.", "JavaScript", 30, false],
+      ["bus-stop-bingo", "Bingo cards generated from the things you see at bus stops.", "Svelte", 37, false],
+      ["sourdough-log", "Tracking a starter's rise with a webcam and a ruler.", "Python", 44, false],
+    ].map(([name, description, language, ago, feat]) => ({
+      name, description, language, created_at: day(ago), html_url: "https://github.com",
+      homepage: null, has_pages: false, topics: [LOG_TOPIC, ...(feat ? [FEATURE_TOPIC] : [])], thumb: null,
+    }));
+  }
+
+  (async () => {
+    try {
+      projects = DEMO ? demoRepos() : await fetchRepos();
+    } catch (e) {
+      $("grid").innerHTML = `<div class="note">Couldn't reach GitHub (${esc(e.message)}). Try again in a bit.</div>`;
+      return;
+    }
+    projects.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    renderStickers(); renderFilters(); render();
+  })();
+</script>
+</body>
+</html>
