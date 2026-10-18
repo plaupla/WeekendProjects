@@ -94,7 +94,7 @@
     display: grid; place-items: center;
   }
   .tile.featured .thumb { aspect-ratio: 16 / 9; }
-  .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .4s; }
+  .thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .4s; }
   .tile:hover .thumb img { transform: scale(1.04); }
   .thumb .art {
     width: 100%; height: 100%; display: grid; place-items: center;
@@ -105,6 +105,11 @@
   .thumb .art span {
     background: #fff6e9; border: 3px solid #1b1430; border-radius: 16px;
     padding: 0 .25em; box-shadow: 5px 5px 0 #1b1430; transform: rotate(-4deg);
+  }
+  .status {
+    position: absolute; top: 12px; left: 12px; z-index: 2;
+    font: 500 .75rem var(--mono); background: var(--paper); color: var(--ink);
+    border: 2px solid var(--ink); border-radius: 99px; padding: 4px 10px; transform: rotate(-3deg);
   }
   .badge {
     position: absolute; top: 12px; right: 12px; z-index: 2;
@@ -151,22 +156,60 @@
 
 <script>
   // ===== CONFIG: change these =====
-  const GITHUB_USER   = "YOUR-GITHUB-USERNAME";
+  const GITHUB_USER   = "plaupla";
   const LOG_TOPIC     = "weekend-project"; // repos with this topic appear on the site
   const FEATURE_TOPIC = "portfolio";       // add this too to make a tile big + starred
   const THUMB_FILE    = "preview.png";     // put this image in the root of each project repo
+
+  // Projects written in by hand. They always show, even while a repo is private
+  // or before you've set GITHUB_USER. A GitHub repo with the same name is skipped.
+  //   name:      the repo name
+  //   live:      where the tile opens ("pages" = YOUR-USERNAME.github.io/<name>/)
+  //   code:      link to the repo, or "" to hide the code link (e.g. while it's private)
+  //   thumb:     an image in this repo's images/ folder
+  //   status:    optional sticker, e.g. "in progress"
+  //   portfolio: true makes the tile big and starred
+  const MY_PROJECTS = [
+    {
+      name: "heart-circle-case-study",
+      title: "Heart Circle",
+      description: "UX case study: helping older adults act calmly on a possible heart rhythm alert, with family involved on their own terms.",
+      language: "UX design",
+      started: "2026-10-17",
+      live: "pages",
+      code: "",
+      thumb: "images/heart-circle.png",
+      status: "in progress",
+      portfolio: true,
+    },
+    {
+      name: "gemma4-developer-agent",
+      title: "Gemma 4 Coding Agent",
+      description: "Kaggle competition: an agent that fixes real GitHub issues with Gemma 4, and says how confident it is in each fix.",
+      language: "Python",
+      started: "2026-10-10",
+      live: "https://www.kaggle.com/competitions/gemma-4-developer-agent",
+      code: "",
+      thumb: "images/gemma4-agent.png",
+      status: "in progress",
+      portfolio: false,
+    },
+  ];
   // ================================
 
   const $ = (id) => document.getElementById(id);
-  const DEMO = GITHUB_USER === "YOUR-GITHUB-USERNAME";
-  $("gh-link").href = DEMO ? "https://github.com" : `https://github.com/${GITHUB_USER}`;
+  const NO_USER = GITHUB_USER === "YOUR-GITHUB-USERNAME";
+  $("gh-link").href = NO_USER ? "https://github.com" : `https://github.com/${GITHUB_USER}`;
 
   const COLORS = ["--tomato", "--sun", "--mint", "--sky", "--lilac", "--pink"];
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const ACRONYMS = new Set(["css", "html", "ui", "ux", "api", "cli", "ai", "3d", "2d", "js", "gpt", "llm", "svg"]);
+  const SMALL_WORDS = new Set(["and", "or", "of", "the", "for", "in", "on", "to", "a", "with"]);
   const pretty = (n) => n.split(/[-_]+/).filter(Boolean)
-    .map((w) => ACRONYMS.has(w.toLowerCase()) ? w.toUpperCase() : w[0].toUpperCase() + w.slice(1)).join(" ");
+    .map((w, i) => ACRONYMS.has(w.toLowerCase()) ? w.toUpperCase()
+      : (i > 0 && SMALL_WORDS.has(w.toLowerCase())) ? w.toLowerCase()
+      : w[0].toUpperCase() + w.slice(1)).join(" ");
   const hash = (s) => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
   const initials = (n) => pretty(n).split(" ").filter(Boolean).slice(0, 2).map((w) => w[0]).join("");
 
@@ -195,15 +238,15 @@
       : artFallback(r);
     return `
       <article class="tile${featured ? " featured" : ""}">
-        <a class="open" href="${esc(liveUrl(r))}" aria-label="Open ${esc(pretty(r.name))}"></a>
-        <div class="thumb">${featured ? '<span class="badge">★ portfolio</span>' : ""}${thumb}</div>
+        <a class="open" href="${esc(liveUrl(r))}" aria-label="Open ${esc(r.title || pretty(r.name))}"></a>
+        <div class="thumb">${r.status ? `<span class="status">${esc(r.status)}</span>` : ""}${featured ? '<span class="badge">★ portfolio</span>' : ""}${thumb}</div>
         <div class="body">
-          <h3>${esc(pretty(r.name))}</h3>
+          <h3>${esc(r.title || pretty(r.name))}</h3>
           <p>${esc(r.description || "")}</p>
           <div class="meta">
             <span>${esc(fmt(weekendOf(r.created_at)))}</span>
             ${r.language ? `<span class="lang">${esc(r.language)}</span>` : ""}
-            <a class="code" href="${esc(r.html_url)}">code ↗</a>
+            ${r.html_url ? `<a class="code" href="${esc(r.html_url)}">code ↗</a>` : ""}
           </div>
         </div>
       </article>`;
@@ -253,32 +296,31 @@
       .map((r) => ({ ...r, thumb: `https://raw.githubusercontent.com/${GITHUB_USER}/${r.name}/${r.default_branch}/${THUMB_FILE}` }));
   }
 
-  // Sample data so you can preview the design before setting your username
-  function demoRepos() {
-    const day = (n) => new Date(Date.now() - n * 864e5).toISOString();
-    return [
-      ["pixel-garden", "A tiny generative garden that grows a new flower every time you click.", "JavaScript", 2, true],
-      ["tube-moods", "How busy is the Victoria line right now, as a face.", "TypeScript", 9, false],
-      ["recipe-scaler", "Paste a recipe, change the servings, get sensible grams back.", "Python", 16, false],
-      ["css-only-clock", "An analogue clock with zero JavaScript.", "CSS", 23, true],
-      ["fridge-poetry", "Magnetic poetry, but your fridge is a browser tab.", "JavaScript", 30, false],
-      ["bus-stop-bingo", "Bingo cards generated from the things you see at bus stops.", "Svelte", 37, false],
-      ["sourdough-log", "Tracking a starter's rise with a webcam and a ruler.", "Python", 44, false],
-    ].map(([name, description, language, ago, feat]) => ({
-      name, description, language, created_at: day(ago), html_url: "https://github.com",
-      homepage: null, has_pages: false, topics: [LOG_TOPIC, ...(feat ? [FEATURE_TOPIC] : [])], thumb: null,
+  function manualProjects() {
+    return MY_PROJECTS.map((p) => ({
+      name: p.name, title: p.title, description: p.description, language: p.language,
+      created_at: p.started + "T12:00:00", status: p.status, thumb: p.thumb || null,
+      homepage: p.live === "pages" ? (NO_USER ? null : `https://${GITHUB_USER}.github.io/${p.name}/`) : (p.live || null),
+      has_pages: false, html_url: p.code || "",
+      topics: [LOG_TOPIC, ...(p.portfolio ? [FEATURE_TOPIC] : [])],
     }));
   }
 
   (async () => {
-    try {
-      projects = DEMO ? demoRepos() : await fetchRepos();
-    } catch (e) {
-      $("grid").innerHTML = `<div class="note">Couldn't reach GitHub (${esc(e.message)}). Try again in a bit.</div>`;
-      return;
+    const manual = manualProjects();
+    let fromGitHub = [];
+    let problem = "";
+    if (!NO_USER) {
+      try { fromGitHub = await fetchRepos(); }
+      catch (e) { problem = e.message; }
     }
+    const names = new Set(manual.map((p) => p.name));
+    projects = [...manual, ...fromGitHub.filter((r) => !names.has(r.name))];
     projects.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     renderStickers(); renderFilters(); render();
+    if (problem && !projects.length) {
+      $("grid").innerHTML = `<div class="note">Couldn't reach GitHub (${esc(problem)}). Try again in a bit.</div>`;
+    }
   })();
 </script>
 </body>
